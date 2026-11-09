@@ -358,7 +358,7 @@ flowchart LR
     end
     subgraph API["ApiBusiness"]
         E1["ObtenerHojasExcelCtrl"]
-        E2["PaFacturaFelDCtrl"]
+        E2["PaFacturaFELDCtrl"]
         E3["PaFacturaFELICtrl"]
         E4["PaFacturaFELSelCtrl"]
         E5["CifrasControlFacturaFelCtrl"]
@@ -400,12 +400,12 @@ Si `Tipo` no es 1 ni 2, el endpoint responde **400** con *"El parámetro 'Tipo' 
 
 ## B2. Endpoints que utiliza el proceso
 
-Todos requieren JWT (`Authorization: Bearer <token>`) y, salvo el de hojas, responden con el envelope estándar `ApiResponseModel` (`status`, `message`, `error`, `errorCode`, `storedProcedure`, `parameters`, `data`, …). Los nombres de las propiedades llegan en camelCase.
+Todos cuelgan de `{urlApi}GD02/Apis/api/` y requieren JWT (`Authorization: Bearer <token>`) y, salvo el de hojas, responden con el envelope estándar `ApiResponseModel` (`status`, `message`, `error`, `errorCode`, `storedProcedure`, `parameters`, `data`, …). Los nombres de las propiedades llegan en camelCase.
 
 | # | Paso de la guía | Método | Ruta | Procedimiento |
 |---|---|---|---|---|
 | 1 | Paso 2: leer las hojas del Excel | POST | `api/ObtenerHojasExcelCtrl` | — (lo lee el API con EPPlus) |
-| 2 | Paso 3: «Eliminar data antes de trasladar» | POST | `api/PaFacturaFelDCtrl` | `paFacturaFEL…IG` `@Accion = 'D'` |
+| 2 | Paso 3: «Eliminar data antes de trasladar» | POST | `api/PaFacturaFELDCtrl` | `paFacturaFEL…IG` `@Accion = 'D'` |
 | 3 | Paso 3: Trasladar Datos | POST | `api/PaFacturaFELICtrl` | `paFacturaFEL…IG` `@Accion = 'I'` (una vez por fila) y `PA_dte_cv_asigna_anulacion` |
 | 4 | Paso 4 / sección 10 / sección 12.1: Ejecutados, Consultar registros y buscar para anular | GET | `api/PaFacturaFELSelCtrl` | `paFacturaFEL…Sel` |
 | 5 | Sección 11: Consultar cifras | GET | `api/CifrasControlFacturaFelCtrl` | `paFacturaFEL…CifrasControl` |
@@ -417,7 +417,7 @@ Todos requieren JWT (`Authorization: Bearer <token>`) y, salvo el de hojas, resp
 
 | Campo | Tipo | Detalle |
 |---|---|---|
-| `ArchivoExcel` | archivo | El `.xlsx` |
+| `archivoExcel` | archivo | El `.xlsx` |
 
 **Respuesta 200:** un arreglo simple con los nombres de las hojas (no viene dentro del envelope):
 
@@ -427,14 +427,14 @@ Todos requieren JWT (`Authorization: Bearer <token>`) y, salvo el de hojas, resp
 
 Si el archivo no se puede leer responde **500** con el envelope y el detalle en `error`.
 
-### B2.2 Eliminar data antes de trasladar: `POST api/PaFacturaFelDCtrl`
+### B2.2 Eliminar data antes de trasladar: `POST api/PaFacturaFELDCtrl`
 
 Se llama **solo si** el usuario marcó «Eliminar data antes de trasladar», antes de B2.3.
 
 **Body (JSON):**
 
 ```json
-{ "userName": "usuario", "tipo": 1 }
+{ "userName": "usuario", "Tipo": 1 }
 ```
 
 **Qué hace:** ejecuta `paFacturaFEL…IG` con `@Accion = 'D'`, que hace `DELETE FROM FacturaFEL… WHERE UserName = @UserName`. Borra los documentos de ese tipo **cargados por ese usuario** (ver B8, punto 1).
@@ -754,13 +754,13 @@ sequenceDiagram
     participant API as ApiBusiness
     participant DB as SQL Server
     U->>A: Arrastra o selecciona el .xlsx
-    A->>API: POST ObtenerHojasExcelCtrl (ArchivoExcel)
+    A->>API: POST ObtenerHojasExcelCtrl (archivoExcel)
     API-->>A: ["Hoja1", ...]
     U->>A: Elige la hoja y pulsa Trasladar Datos
     A->>U: ¿Está seguro? [ ] Eliminar data antes de trasladar
     U->>A: Confirmar
     opt Marcó «Eliminar data antes de trasladar»
-        A->>API: POST PaFacturaFelDCtrl { userName, tipo }
+        A->>API: POST PaFacturaFELDCtrl { userName, Tipo }
         API->>DB: paFacturaFEL…IG @Accion='D'
         DB-->>API: DELETE … WHERE UserName = @UserName
     end
