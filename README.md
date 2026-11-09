@@ -344,7 +344,7 @@ La ventana de revisión es una **última verificación**: muestra por separado l
 | Aplicativo | Carga Factura Fel Excel (`prcFacturaFelCompra`), módulo SAT |
 | Frontend | Angular |
 | Backend | ApiBusiness (ASP.NET Core 8), carpetas `Controllers/ComprasSAT`, `Controllers/MigrarExcel` y `Controllers/Shared` |
-| Base de datos | SQL Server. Revisado en `DLBENDICION_20260708_1449_ac` (copia de desarrollo de DLB) |
+| Base de datos | SQL Server. En producción en `DLBENDICION`. Revisado en `DLBENDICION_20260708_1449_ac` (copia de desarrollo de DLB) |
 | Fecha de esta parte | 09/11/2026 |
 
 
