@@ -54,7 +54,6 @@ Guía para entender qué hace este aplicativo, cómo se usa y en qué ayuda. Est
 - [B5. Tablas donde se guarda la información](#b5-tablas-donde-se-guarda-la-información)
 - [B6. Diagrama entidad-relación](#b6-diagrama-entidad-relación)
 - [B7. Diagramas de flujo técnicos](#b7-diagramas-de-flujo-técnicos)
-- [B8. Observaciones técnicas](#b8-observaciones-técnicas)
 
 ---
 
@@ -437,7 +436,7 @@ Se llama **solo si** el usuario marcó «Eliminar data antes de trasladar», ant
 { "userName": "usuario", "Tipo": 1 }
 ```
 
-**Qué hace:** ejecuta `paFacturaFEL…IG` con `@Accion = 'D'`, que hace `DELETE FROM FacturaFEL… WHERE UserName = @UserName`. Borra los documentos de ese tipo **cargados por ese usuario** (ver B8, punto 1).
+**Qué hace:** ejecuta `paFacturaFEL…IG` con `@Accion = 'D'`, que hace `DELETE FROM FacturaFEL… WHERE UserName = @UserName`. Borra los documentos de ese tipo **cargados por ese usuario**.
 
 **Respuesta 200:** `data: "Facturas eliminadas correctamente."`
 
@@ -833,18 +832,3 @@ sequenceDiagram
     API-->>A: Documentos actualizados
     A->>U: Ventana «Resultado de la actualización»
 ```
-
-## B8. Observaciones técnicas
-
-Puntos a tener en cuenta sobre el comportamiento actual del proceso.
-
-| # | Observación | Dónde | Efecto |
-|---|---|---|---|
-| 1 | «Eliminar data antes de trasladar» borra por **usuario**, sin filtrar por empresa: `DELETE … WHERE UserName = @UserName`. | `paFacturaFEL…IG` `@Accion = 'D'` | Borra lo que ese usuario cargó en **todas** las empresas, no solo en la de la sesión. Tampoco borra lo cargado por otros usuarios en la misma empresa. |
-| 2 | La conciliación de anulados no filtra por empresa y recorre las tablas completas de compras **y** ventas, sin importar el tipo que se cargó. | `PA_dte_cv_asigna_anulacion` | Las 6 cifras de la sección 9.1 son de todas las empresas y de todas las cargas, no solo del archivo recién cargado. |
-| 3 | La conciliación solo **anula** en el DTE (`Estado = 0`); nunca reactiva. Y no se ejecuta al anular o reactivar desde la pantalla, solo al trasladar. | `PA_dte_cv_asigna_anulacion`, B2.6 | Un documento anulado a mano en la vista de anulación no se refleja en `tbl_dte_cv_factura` hasta el siguiente traslado. Uno reactivado nunca se reactiva en el DTE. |
-| 4 | Al anular desde la pantalla, `FechaAnulacion` toma la **fecha y hora actual**, no la fecha de anulación ante la SAT. | `paFacturaFEL…AnularActivarUpd` | La fecha que se ve es la del cambio en el sistema. |
-| 5 | Anular o reactivar busca por **serie y número** sin el NIT, que sí es parte de la llave. | `paFacturaFEL…AnularActivarUpd` | Si dos emisores tuvieran la misma serie y número en la empresa, se actualizarían los dos. |
-| 6 | La consulta de documentos no tiene paginación. | `paFacturaFEL…Sel` | Sin filtros, devuelve todos los documentos del tipo para la empresa. En la copia de DLB hay 278,478 de ventas. |
-| 7 | Los errores SQL responden con **HTTP 500** y en algunos endpoints sin `errorCode`. | B2.2 a B2.6 | Angular no puede distinguir por código un error de validación de una falla real. |
-| 8 | `PaFacturaFELUCtrl` siempre ejecuta el procedimiento de **compras**, aunque reciba `Tipo = 2`. | B2.7 (no lo usa esta pantalla) | Asignar cuenta contable a ventas actualizaría compras. |
